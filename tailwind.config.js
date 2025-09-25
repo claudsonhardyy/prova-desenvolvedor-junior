@@ -3,7 +3,7 @@ import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-    darkMode: 'class', // dark mode controlado via classe
+    darkMode: 'class', // habilita dark mode por classe
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
@@ -14,22 +14,30 @@ export default {
     theme: {
         extend: {
             colors: {
+                // Vermelho institucional IESB
                 primary: {
-                    light: '#ef4444', // vermelho claro
-                    DEFAULT: '#dc2626', // vermelho principal IESB
-                    dark: '#b91c1c', // vermelho mais forte
+                    light: '#E63946',
+                    DEFAULT: '#D71920',
+                    dark: '#B31217',
                 },
+                // Fundos
                 background: {
-                    light: '#ffffff',
-                    dark: '#1a1a1a',
+                    light: '#FFFFFF', // fundo claro
+                    dark: '#0D1117',  // fundo escuro (azul quase preto)
                 },
+                // Superfícies (cartões, caixas)
+                surface: {
+                    light: '#F9FAFB', // cinza claro para cards
+                    dark: '#1E2734',  // cinza azulado para cards dark
+                },
+                // Texto
                 text: {
-                    light: '#111827',
-                    dark: '#f9fafb',
+                    light: '#111827', // quase preto no light
+                    dark: '#E5E7EB',  // cinza claro no dark
                 },
             },
             fontFamily: {
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                sans: ['Roboto', ...defaultTheme.fontFamily.sans], // Fonte usada pelo IESB
             },
         },
     },

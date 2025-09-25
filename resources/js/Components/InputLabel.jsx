@@ -1,16 +1,11 @@
-export default function InputLabel({
-    value,
-    className = '',
-    children,
-    ...props
-}) {
+export default function InputLabel({ forInput, value, className = '', children, ...props }) {
     return (
         <label
-            {...props}
+            htmlFor={forInput}
             className={
-                `block text-sm font-medium text-gray-700 ` +
-                className
+                `block font-medium text-sm text-text-light dark:text-text-dark ` + className
             }
+            {...props}
         >
             {value ? value : children}
         </label>
