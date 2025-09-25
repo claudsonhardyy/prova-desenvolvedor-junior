@@ -3,39 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disciplina;
-use App\Http\Requests\StoreDisciplinaRequest;
-use App\Http\Requests\UpdateDisciplinaRequest;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DisciplinaController extends Controller
 {
-    // Lista todas as disciplinas
     public function index()
     {
-        $disciplinas = Disciplina::orderBy('nome')->get();
+        $disciplinas = Disciplina::orderBy('nome')->paginate(10)->withQueryString();
 
         return Inertia::render('Disciplinas/Index', [
             'disciplinas' => $disciplinas,
         ]);
     }
 
-    // Salva nova disciplina
-    public function store(StoreDisciplinaRequest $request)
+    public function store(Request $request)
     {
-        Disciplina::create($request->validated());
+        $data = $request->validate([
+            'nome'          => ['required', 'string', 'max:150'],
+            'codigo'        => ['required', 'string', 'max:20', 'unique:disciplinas,codigo'],
+            'carga_horaria' => ['required', 'integer', 'min:1'],
+            'ativa'         => ['required', 'boolean'],
+        ]);
+
+        Disciplina::create($data);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina criada com sucesso!');
     }
 
-    // Atualiza disciplina existente
-    public function update(UpdateDisciplinaRequest $request, Disciplina $disciplina)
+    public function update(Request $request, Disciplina $disciplina)
     {
-        $disciplina->update($request->validated());
+        $data = $request->validate([
+            'nome'          => ['required', 'string', 'max:150'],
+            'codigo'        => ['required', 'string', 'max:20', 'unique:disciplinas,codigo,' . $disciplina->id],
+            'carga_horaria' => ['required', 'integer', 'min:1'],
+            'ativa'         => ['required', 'boolean'],
+        ]);
+
+        $disciplina->update($data);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina atualizada com sucesso!');
     }
 
-    // Remove disciplina
     public function destroy(Disciplina $disciplina)
     {
         $disciplina->delete();
