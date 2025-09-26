@@ -1,0 +1,1 @@
+import{j as o}from"./app-DajWqx7P.js";function a({forInput:e,value:t,className:r="",children:x,...m}){return o.jsx("label",{htmlFor:e,className:`block font-medium text-sm text-text-light dark:text-text-dark ${r}`,...m,children:t||x})}export{a as I};

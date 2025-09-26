@@ -3,26 +3,25 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Disciplina;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
-        // Usuário padrão
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('12345678'),
-        ]);
+        // ⚠️ Desabilitei a factory padrão que criava usuário duplicado
+        // \App\Models\User::factory(10)->create();
 
-        // Chamamos o seeder de disciplinas
-        $this->call([
-            DisciplinaSeeder::class,
-        ]);
+        // Se quiser, pode criar apenas 1 usuário padrão:
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Admin',
+        //     'email' => 'admin@example.com',
+        //     'password' => bcrypt('password'),
+        // ]);
 
-        // E também podemos gerar disciplinas fake
-        Disciplina::factory(10)->create();
+        // Nosso seeder de disciplinas
+        $this->call(DisciplinaSeeder::class);
     }
 }
