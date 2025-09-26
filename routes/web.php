@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DisciplinaController;
-use App\Models\Disciplina;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,29 +16,21 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    $total = Disciplina::count();
-    $ativas = Disciplina::where('ativa', true)->count();
-    $inativas = Disciplina::where('ativa', false)->count();
+// Dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-    return Inertia::render('Dashboard', [
-        'metrics' => [
-            'total' => $total,
-            'ativas' => $ativas,
-            'inativas' => $inativas,
-        ],
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Rotas autenticadas
+Route::middleware('auth')->group(function () {
+    Route::resource('disciplinas', DisciplinaController::class);
 
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/disciplinas', [DisciplinaController::class, 'index'])->name('disciplinas.index');
-    Route::post('/disciplinas', [DisciplinaController::class, 'store'])->name('disciplinas.store');
-    Route::put('/disciplinas/{disciplina}', [DisciplinaController::class, 'update'])->name('disciplinas.update');
-    Route::delete('/disciplinas/{disciplina}', [DisciplinaController::class, 'destroy'])->name('disciplinas.destroy');
 });
 
-require __DIR__.'/auth.php';
+// Rotas de login/registro/logout/etc.
+require __DIR__ . '/auth.php';

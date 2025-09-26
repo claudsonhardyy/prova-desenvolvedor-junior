@@ -1,14 +1,22 @@
-import { Link, useForm } from '@inertiajs/react';
-import InputLabel from '@/Components/InputLabel';
+import { useEffect } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
-import LogoIesb from '@/Components/LogoIesb.png';
+import InputLabel from '@/Components/InputLabel';
+import Button from '@/Components/ui/Button';
 
 export default function Login({ status, canResetPassword }) {
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
     remember: false,
   });
+
+  useEffect(() => {
+    return () => {
+      reset('password');
+    };
+  }, []);
 
   const submit = (e) => {
     e.preventDefault();
@@ -16,68 +24,92 @@ export default function Login({ status, canResetPassword }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-[#E30613] dark:bg-gray-900">
-      <div className="text-center mb-8 flex flex-col items-center">
-        <img src={LogoIesb} alt="IESB Logo" className="h-20 mb-4" />
-        <h1 className="text-2xl font-bold text-white dark:text-gray-100">Centro Universitário IESB</h1>
-      </div>
+    <AuthenticatedLayout>
+      <Head title="Login" />
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md">
-        {status && <div className="mb-4 font-medium text-sm text-green-600 dark:text-green-400">{status}</div>}
+      <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-8 space-y-6">
+          <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">
+            Acesse sua conta
+          </h2>
 
-        <form onSubmit={submit} className="space-y-6">
-          <div>
-            <InputLabel htmlFor="email" value="Email" />
-            <input
-              id="email" type="email" value={data.email}
-              onChange={(e) => setData('email', e.target.value)}
-              className="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:ring-[#E30613] focus:border-[#E30613]"
-            />
-            <InputError message={errors.email} className="mt-2" />
-          </div>
+          {status && (
+            <div className="mb-4 text-sm font-medium text-green-600 dark:text-green-400">
+              {status}
+            </div>
+          )}
 
-          <div>
-            <InputLabel htmlFor="password" value="Senha" />
-            <input
-              id="password" type="password" value={data.password}
-              onChange={(e) => setData('password', e.target.value)}
-              className="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:ring-[#E30613] focus:border-[#E30613]"
-            />
-            <InputError message={errors.password} className="mt-2" />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <label className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+          <form onSubmit={submit} className="space-y-4">
+            {/* Email */}
+            <div>
+              <InputLabel htmlFor="email" value="E-mail" />
               <input
-                type="checkbox" checked={data.remember}
-                onChange={(e) => setData('remember', e.target.checked)}
-                className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-[#E30613] focus:ring-[#E30613]"
+                id="email"
+                type="email"
+                value={data.email}
+                onChange={(e) => setData('email', e.target.value)}
+                required
+                autoFocus
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
               />
-              <span className="ml-2">Lembrar-me</span>
-            </label>
+              <InputError message={errors.email} className="mt-2" />
+            </div>
 
-            {canResetPassword && (
-              <Link href={route('password.request')} className="text-sm text-[#E30613] hover:underline dark:text-red-400">
-                Esqueceu a senha?
+            {/* Senha */}
+            <div>
+              <InputLabel htmlFor="password" value="Senha" />
+              <input
+                id="password"
+                type="password"
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
+              />
+              <InputError message={errors.password} className="mt-2" />
+            </div>
+
+            {/* Lembrar-me */}
+            <div className="flex items-center">
+              <input
+                id="remember"
+                type="checkbox"
+                checked={data.remember}
+                onChange={(e) => setData('remember', e.target.checked)}
+                className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+              />
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                Lembrar-me
+              </label>
+            </div>
+
+            {/* Botão login */}
+            <div>
+              <Button type="submit" className="w-full" disabled={processing}>
+                Entrar
+              </Button>
+            </div>
+
+            {/* Links extras */}
+            <div className="flex items-center justify-between">
+              {canResetPassword && (
+                <Link
+                  href={route('password.request')}
+                  className="text-sm text-primary hover:text-primary-dark transition"
+                >
+                  Esqueceu sua senha?
+                </Link>
+              )}
+              <Link
+                href={route('register')}
+                className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary transition"
+              >
+                Criar conta
               </Link>
-            )}
-          </div>
-
-        <button type="submit" disabled={processing}
-          className="w-full bg-[#E30613] text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition">
-          Entrar
-        </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Não tem conta?{' '}
-            <Link href={route('register')} className="font-semibold text-[#E30613] hover:underline dark:text-red-400">
-              Registrar-se
-            </Link>
-          </p>
+            </div>
+          </form>
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }
