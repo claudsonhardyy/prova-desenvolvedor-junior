@@ -12,11 +12,12 @@ import {
   ArrowSmallUpIcon,
   ArrowSmallDownIcon,
 } from "@heroicons/react/24/outline";
+import ConfirmModal from "@/Components/ui/ConfirmModal";
 
 const NOME_MAX = 80;
 const CODIGO_MIN = 3;
 
-export default function Index({ auth, disciplinas, sort, direction, editId, action, disciplina }) {
+export default function Index({ auth, disciplinas, sort, direction, search: initialSearch, editId, action, disciplina }) {
   const { props } = usePage();
   const flash = props.flash || {};
   const toast = useToast();
@@ -28,9 +29,26 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
     carga_horaria: "",
     ativa: true,
   });
+
   const [editing, setEditing] = useState(false);
 
-  // exibir toasts vindos do backend
+  // 🔹 pesquisa
+  const [search, setSearch] = useState(initialSearch || "");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    router.get(
+      route("disciplinas.index"),
+      { search, sort, direction },
+      { preserveState: true, replace: true }
+    );
+  };
+
+  // 🔹 modal de exclusão
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [disciplinaToDelete, setDisciplinaToDelete] = useState(null);
+
+  // flash messages
   useEffect(() => {
     if (flash.success) toast.success(flash.success);
     if (flash.error) toast.error(flash.error);
@@ -46,9 +64,8 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
     return true;
   }, [data]);
 
-  // abrir edição automática (vindo do dashboard)
+  // abrir edição automática
   useEffect(() => {
-    // prioridade: se o backend já me mandou a disciplina específica, uso ela
     if (action === "edit" && disciplina) {
       setData({
         id: disciplina.id,
@@ -62,7 +79,6 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
       return;
     }
 
-    // fallback: tenta achar na página atual (se backend não enviou disciplina)
     if (action === "edit" && editId) {
       const found = disciplinas?.data?.find((d) => String(d.id) === String(editId));
       if (found) {
@@ -129,22 +145,12 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
     setEditing(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm("Tem certeza que deseja excluir esta disciplina?")) {
-      router.delete(route("disciplinas.destroy", id), {
-        preserveScroll: true,
-        onSuccess: () => toast.success("Disciplina excluída."),
-        onError: () => toast.error("Falha ao excluir."),
-      });
-    }
-  };
-
   const toggleSort = (field) => {
     const isSame = sort === field;
     const newDirection = isSame && direction === "asc" ? "desc" : "asc";
     router.get(
       route("disciplinas.index"),
-      { sort: field, direction: newDirection },
+      { sort: field, direction: newDirection, search },
       { preserveState: true, preserveScroll: true }
     );
   };
@@ -163,7 +169,49 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
       header={<h2 className="font-semibold text-xl text-text-light dark:text-text-dark leading-tight">Disciplinas</h2>}
     >
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Formulário */}
+
+        {/* 🔹 Barra de pesquisa */}
+        <form onSubmit={handleSearch} className="flex items-center gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Pesquisar por nome ou código..."
+            className="flex-1 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
+          />
+          <Button type="submit">Pesquisar</Button>
+
+          {search && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setSearch("");
+                router.get(
+                  route("disciplinas.index"),
+                  { sort, direction },
+                  { preserveState: true, replace: true }
+                );
+              }}
+            >
+              Limpar
+            </Button>
+          )}
+        </form>
+
+        {/* 🔹 Botão de exportação */}
+        <div className="mt-4">
+          <a
+            href={route("disciplinas.export")}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition"
+          >
+            Exportar CSV
+          </a>
+        </div>
+
+
+
+        {/* Formulário de disciplina */}
         <div className="bg-surface-light dark:bg-surface-dark shadow rounded-lg p-6 transition-colors duration-300">
           <h3 className="text-lg font-medium mb-4">{editing ? "Editar Disciplina" : "Nova Disciplina"}</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -319,7 +367,10 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
                           <Button
                             variant="danger"
                             className="!px-2"
-                            onClick={() => handleDelete(d.id)}
+                            onClick={() => {
+                              setDisciplinaToDelete(d.id);
+                              setConfirmOpen(true);
+                            }}
                             title="Excluir"
                           >
                             <TrashIcon className="w-5 h-5" />
@@ -331,27 +382,42 @@ export default function Index({ auth, disciplinas, sort, direction, editId, acti
                 </table>
               </div>
 
-              {/* Paginação - usando apenas links padrão do paginator */}
+              {/* Paginação */}
               <div className="mt-4 flex flex-wrap gap-2">
                 {disciplinas.links.map((link, i) => (
                   <Link
                     key={i}
                     href={link.url || "#"}
                     dangerouslySetInnerHTML={{ __html: link.label }}
-                    className={`px-3 py-1 rounded border ${
-                      link.active
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
-                    } ${!link.url ? "opacity-50 pointer-events-none" : ""}`}
+                    className={`px-3 py-1 rounded border ${link.active
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
+                      } ${!link.url ? "opacity-50 pointer-events-none" : ""}`}
                   />
                 ))}
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-400">Nenhuma disciplina cadastrada.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Nenhuma disciplina encontrada.</p>
           )}
         </div>
       </div>
+
+      {/* 🔹 Modal de confirmação de exclusão */}
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          router.delete(route("disciplinas.destroy", disciplinaToDelete), {
+            preserveScroll: true,
+            onSuccess: () => toast.success("Disciplina excluída."),
+            onError: () => toast.error("Falha ao excluir."),
+          });
+          setConfirmOpen(false);
+        }}
+        title="Confirmar exclusão"
+        message="Tem certeza que deseja excluir esta disciplina? Essa ação não pode ser desfeita."
+      />
     </AuthenticatedLayout>
   );
 }

@@ -1,142 +1,99 @@
+import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import Button from '@/Components/ui/Button';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Transition } from '@headlessui/react';
-import { useForm } from '@inertiajs/react';
-import { useRef } from 'react';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 export default function UpdatePasswordForm({ className = '' }) {
-    const passwordInput = useRef();
-    const currentPasswordInput = useRef();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const {
-        data,
-        setData,
-        errors,
-        put,
-        reset,
-        processing,
-        recentlySuccessful,
-    } = useForm({
-        current_password: '',
-        password: '',
-        password_confirmation: '',
+  const { data, setData, put, errors, reset, processing } = useForm({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+  });
+
+  const updatePassword = () => {
+    put(route('password.update'), {
+      preserveScroll: true,
+      onSuccess: () => {
+        reset();
+        setConfirmOpen(false);
+      },
     });
+  };
 
-    const updatePassword = (e) => {
-        e.preventDefault();
+  return (
+    <section className={`space-y-6 ${className}`}>
+      <header>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Alterar Senha
+        </h2>
 
-        put(route('password.update'), {
-            preserveScroll: true,
-            onSuccess: () => reset(),
-            onError: (errors) => {
-                if (errors.password) {
-                    reset('password', 'password_confirmation');
-                    passwordInput.current.focus();
-                }
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Certifique-se de usar uma senha longa, com letras, números e símbolos
+          para maior segurança.
+        </p>
+      </header>
 
-                if (errors.current_password) {
-                    reset('current_password');
-                    currentPasswordInput.current.focus();
-                }
-            },
-        });
-    };
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <InputLabel htmlFor="current_password" value="Senha atual" />
+          <input
+            id="current_password"
+            type="password"
+            value={data.current_password}
+            onChange={(e) => setData('current_password', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
+          />
+          <InputError message={errors.current_password} className="mt-2" />
+        </div>
 
-    return (
-        <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Update Password
-                </h2>
+        <div>
+          <InputLabel htmlFor="password" value="Nova senha" />
+          <input
+            id="password"
+            type="password"
+            value={data.password}
+            onChange={(e) => setData('password', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
+          />
+          <InputError message={errors.password} className="mt-2" />
+        </div>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Ensure your account is using a long, random password to stay
-                    secure.
-                </p>
-            </header>
+        <div>
+          <InputLabel htmlFor="password_confirmation" value="Confirmar nova senha" />
+          <input
+            id="password_confirmation"
+            type="password"
+            value={data.password_confirmation}
+            onChange={(e) => setData('password_confirmation', e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-primary sm:text-sm"
+          />
+          <InputError message={errors.password_confirmation} className="mt-2" />
+        </div>
+      </div>
 
-            <form onSubmit={updatePassword} className="mt-6 space-y-6">
-                <div>
-                    <InputLabel
-                        htmlFor="current_password"
-                        value="Current Password"
-                    />
+      {/* Botão que abre modal */}
+      <div>
+        <Button
+          type="button"
+          disabled={processing}
+          onClick={() => setConfirmOpen(true)}
+        >
+          Atualizar Senha
+        </Button>
+      </div>
 
-                    <TextInput
-                        id="current_password"
-                        ref={currentPasswordInput}
-                        value={data.current_password}
-                        onChange={(e) =>
-                            setData('current_password', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                    />
-
-                    <InputError
-                        message={errors.current_password}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div>
-                    <InputLabel htmlFor="password" value="New Password" />
-
-                    <TextInput
-                        id="password"
-                        ref={passwordInput}
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        value={data.password_confirmation}
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        type="password"
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
-
-                    <Transition
-                        show={recentlySuccessful}
-                        enter="transition ease-in-out"
-                        enterFrom="opacity-0"
-                        leave="transition ease-in-out"
-                        leaveTo="opacity-0"
-                    >
-                        <p className="text-sm text-gray-600">
-                            Saved.
-                        </p>
-                    </Transition>
-                </div>
-            </form>
-        </section>
-    );
+      {/* Modal estilizado */}
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={updatePassword}
+        title="Confirmar alteração de senha"
+        message="Tem certeza que deseja alterar sua senha? Você precisará usar a nova senha no próximo login."
+      />
+    </section>
+  );
 }

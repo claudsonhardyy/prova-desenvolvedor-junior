@@ -4,10 +4,31 @@ import DarkModeToggle from '@/Components/DarkModeToggle';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import LogoIesb from '@/Components/LogoIesb.png';
+import ConfirmModal from '@/Components/ui/ConfirmModal';
 
 export default function AuthenticatedLayout({ header, children }) {
   const user = usePage().props.auth.user;
   const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+
+  // 🔹 estados do modal de logout
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  // 🔹 função que envia o logout via POST
+  const handleLogout = () => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = route('logout');
+
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = '_token';
+    input.value = token;
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  };
 
   return (
     <div className="min-h-screen bg-background-light text-text-light dark:bg-background-dark dark:text-text-dark transition-colors duration-300">
@@ -17,7 +38,7 @@ export default function AuthenticatedLayout({ header, children }) {
             {/* Logo + Nome */}
             <div className="flex items-center">
               <img src={LogoIesb} alt="IESB" className="h-9 mr-3" />
-              <Link href="/" className="text-lg font-bold text-primary">
+              <Link href="/" className="text-lg font-bold text-primary drop-shadow-sm">
                 Centro Universitário IESB
               </Link>
             </div>
@@ -36,20 +57,13 @@ export default function AuthenticatedLayout({ header, children }) {
 
               <DarkModeToggle />
 
-              {/* Logout */}
-              <form method="POST" action={route('logout')}>
-                <input
-                  type="hidden"
-                  name="_token"
-                  value={document.querySelector('meta[name="csrf-token"]').content}
-                />
-                <button
-                  type="submit"
-                  className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition"
-                >
-                  Sair
-                </button>
-              </form>
+              {/* Botão de Logout → abre modal */}
+              <button
+                onClick={() => setLogoutConfirmOpen(true)}
+                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition"
+              >
+                Sair
+              </button>
             </div>
 
             {/* Mobile menu button */}
@@ -93,14 +107,12 @@ export default function AuthenticatedLayout({ header, children }) {
             <ResponsiveNavLink href={route('profile.edit')} active={route().current('profile.edit')}>
               Perfil
             </ResponsiveNavLink>
-            <form method="POST" action={route('logout')}>
-              <input
-                type="hidden"
-                name="_token"
-                value={document.querySelector('meta[name="csrf-token"]').content}
-              />
-              <ResponsiveNavLink as="button">Sair</ResponsiveNavLink>
-            </form>
+            <ResponsiveNavLink
+              as="button"
+              onClick={() => setLogoutConfirmOpen(true)}
+            >
+              Sair
+            </ResponsiveNavLink>
           </div>
         )}
       </nav>
@@ -114,6 +126,15 @@ export default function AuthenticatedLayout({ header, children }) {
 
       {/* Conteúdo */}
       <main className="py-6">{children}</main>
+
+      {/* 🔹 Modal de logout */}
+      <ConfirmModal
+        open={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title="Confirmar logout"
+        message="Tem certeza que deseja sair da sua conta?"
+      />
     </div>
   );
 }
