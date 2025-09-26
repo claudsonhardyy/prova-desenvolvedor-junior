@@ -10,41 +10,38 @@ class DisciplinaSeeder extends Seeder
 {
     public function run(): void
     {
-        // 🔹 Garante que exista um usuário para vincular as disciplinas
-        $user = User::firstOrCreate(
-            ['email' => 'teste@example.com'],
-            [
+        // 🔹 Pega ou cria o usuário padrão
+        $user = User::first();
+        if (!$user) {
+            $user = User::factory()->create([
                 'name' => 'Usuário Teste',
-                'password' => bcrypt('password'), // senha: password
-            ]
-        );
+                'email' => 'teste@example.com',
+                'password' => bcrypt('password'),
+            ]);
+        }
 
+        // 🔹 Disciplinas fixas SEM repetição de códigos
         $disciplinas = [
             ['nome' => 'Cálculo I', 'codigo' => 'MAT101', 'carga_horaria' => 60, 'ativa' => true],
             ['nome' => 'Cálculo II', 'codigo' => 'MAT102', 'carga_horaria' => 60, 'ativa' => true],
             ['nome' => 'Álgebra Linear', 'codigo' => 'MAT201', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Geometria Analítica', 'codigo' => 'MAT202', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Português Instrumental', 'codigo' => 'POR101', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Filosofia', 'codigo' => 'FIL101', 'carga_horaria' => 45, 'ativa' => true],
-            ['nome' => 'Sociologia', 'codigo' => 'SOC101', 'carga_horaria' => 45, 'ativa' => true],
-            ['nome' => 'Física I', 'codigo' => 'FIS101', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Química Geral', 'codigo' => 'QUI101', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Biologia Celular', 'codigo' => 'BIO101', 'carga_horaria' => 60, 'ativa' => true],
+            ['nome' => 'Português Instrumental', 'codigo' => 'POR201', 'carga_horaria' => 45, 'ativa' => true],
+            ['nome' => 'Filosofia', 'codigo' => 'FIL101', 'carga_horaria' => 45, 'ativa' => false],
             ['nome' => 'Introdução à Programação', 'codigo' => 'INF101', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Estruturas de Dados', 'codigo' => 'INF201', 'carga_horaria' => 60, 'ativa' => true],
             ['nome' => 'Banco de Dados', 'codigo' => 'INF202', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Engenharia de Software', 'codigo' => 'INF301', 'carga_horaria' => 60, 'ativa' => true],
+            ['nome' => 'Engenharia de Software', 'codigo' => 'INF301', 'carga_horaria' => 60, 'ativa' => false],
             ['nome' => 'Redes de Computadores', 'codigo' => 'INF302', 'carga_horaria' => 60, 'ativa' => true],
-            ['nome' => 'Inglês Técnico', 'codigo' => 'ING101', 'carga_horaria' => 45, 'ativa' => true],
             ['nome' => 'Empreendedorismo', 'codigo' => 'ADM101', 'carga_horaria' => 45, 'ativa' => true],
-            ['nome' => 'Ética Profissional', 'codigo' => 'ADM102', 'carga_horaria' => 45, 'ativa' => true],
         ];
 
         foreach ($disciplinas as $disciplina) {
-            Disciplina::firstOrCreate(
-                ['codigo' => $disciplina['codigo']], // evita duplicação
-                array_merge($disciplina, ['user_id' => $user->id]) // vincula ao usuário de teste
+            Disciplina::updateOrCreate(
+                ['codigo' => $disciplina['codigo']], // 🔑 evita duplicar
+                array_merge($disciplina, ['user_id' => $user->id])
             );
         }
+
+        // 🔹 Cria mais 30 disciplinas aleatórias
+        Disciplina::factory(30)->create(['user_id' => $user->id]);
     }
 }

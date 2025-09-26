@@ -14,10 +14,10 @@ class Disciplina extends Model
         'codigo',
         'carga_horaria',
         'ativa',
-        'user_id', // 🔹 agora pode ser preenchido
+        'user_id', // 🔹 garante vínculo com usuário
     ];
 
-    // 🔹 Relação com usuário (cada disciplina pertence a um usuário)
+    // 🔹 Relação: uma disciplina pertence a um usuário
     public function user()
     {
         return $this->belongsTo(User::class);

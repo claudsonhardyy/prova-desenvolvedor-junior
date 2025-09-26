@@ -2,22 +2,24 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Disciplina;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Disciplina>
- */
 class DisciplinaFactory extends Factory
 {
+    protected $model = Disciplina::class;
+
     public function definition(): array
     {
+        $codigos = ['MAT', 'INF', 'ADM', 'POR', 'FIL', 'ENG'];
+
         return [
-            'nome' => $this->faker->words(2, true), // exemplo: "Cálculo Avançado"
-            'codigo' => strtoupper($this->faker->bothify('???###')), // exemplo: "MAT101"
-            'carga_horaria' => $this->faker->numberBetween(30, 120),
-            'ativa' => $this->faker->boolean(80), // 80% chance de ser ativa
-            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(), 
+            'nome' => ucfirst($this->faker->words(2, true)),
+            'codigo' => $this->faker->randomElement($codigos) . $this->faker->numberBetween(100, 999),
+            'carga_horaria' => $this->faker->randomElement([30, 45, 60, 80]),
+            'ativa' => $this->faker->boolean(70),
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
         ];
     }
 }

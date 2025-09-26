@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DisciplinaController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -15,6 +16,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return inertia('Dashboard');
     })->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     // 🔹 Rota de exportação CSV (vem antes do resource para evitar conflito)
     Route::get('/disciplinas/export', [DisciplinaController::class, 'export'])

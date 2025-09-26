@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Disciplina;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    /**
-     * Exibe o dashboard com métricas e últimas disciplinas
-     */
-    public function index()
+    public function __invoke(Request $request)
     {
-        $total = Disciplina::count();
-        $ativas = Disciplina::where('ativa', true)->count();
-        $inativas = Disciplina::where('ativa', false)->count();
+        $userId = auth()->id();
 
-        $ultimas = Disciplina::orderBy('created_at', 'desc')
+        $total = Disciplina::where('user_id', $userId)->count();
+        $ativas = Disciplina::where('user_id', $userId)->where('ativa', true)->count();
+        $inativas = Disciplina::where('user_id', $userId)->where('ativa', false)->count();
+
+        $ultimas = Disciplina::where('user_id', $userId)
+            ->latest()
             ->take(5)
             ->get(['id', 'nome', 'codigo', 'ativa', 'created_at']);
 

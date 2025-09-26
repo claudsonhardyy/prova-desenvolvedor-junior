@@ -9,17 +9,17 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class DisciplinaController extends Controller
 {
-    use AuthorizesRequests; // 🔹 habilita authorize()
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
-        $sort = $request->get('sort', 'nome');          // campo de ordenação
-        $direction = $request->get('direction', 'asc'); // direção
-        $search = $request->get('search');              // termo de pesquisa
+        $sort = $request->get('sort', 'nome');
+        $direction = $request->get('direction', 'asc');
+        $search = $request->get('search');
 
         $query = Disciplina::query()
-            ->where('user_id', auth()->id()); // 🔹 só disciplinas do usuário
+            ->where('user_id', auth()->id());
 
-        // 🔹 aplica pesquisa
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')
@@ -27,7 +27,6 @@ class DisciplinaController extends Controller
             });
         }
 
-        // 🔹 aplica ordenação
         if (in_array($sort, ['nome', 'codigo', 'carga_horaria', 'ativa'])) {
             $query->orderBy($sort, $direction);
         }
@@ -51,14 +50,12 @@ class DisciplinaController extends Controller
             'ativa' => 'required|boolean',
         ]);
 
-        // 🔹 sempre vincula ao usuário logado
         $validated['user_id'] = auth()->id();
 
         Disciplina::create($validated);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina criada com sucesso!');
     }
-
 
     public function update(Request $request, Disciplina $disciplina)
     {
@@ -71,14 +68,12 @@ class DisciplinaController extends Controller
             'ativa' => 'required|boolean',
         ]);
 
-        // 🔹 mantém sempre o user_id correto
         $validated['user_id'] = auth()->id();
 
         $disciplina->update($validated);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina atualizada com sucesso!');
     }
-
 
     public function destroy(Disciplina $disciplina)
     {
@@ -88,6 +83,7 @@ class DisciplinaController extends Controller
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina excluída com sucesso!');
     }
+
     public function export(Request $request)
     {
         $disciplinas = Disciplina::where('user_id', auth()->id())
@@ -106,8 +102,6 @@ class DisciplinaController extends Controller
 
         $callback = function () use ($disciplinas) {
             $file = fopen('php://output', 'w');
-
-            // 🔹 Cabeçalho CSV
             fputcsv($file, ['Nome', 'Código', 'Carga Horária', 'Status']);
 
             foreach ($disciplinas as $d) {
@@ -124,5 +118,4 @@ class DisciplinaController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
-
 }
