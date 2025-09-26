@@ -51,13 +51,14 @@ class DisciplinaController extends Controller
             'ativa' => 'required|boolean',
         ]);
 
-        Disciplina::create([
-            ...$validated,
-            'user_id' => auth()->id(), // 🔹 garante vínculo com usuário
-        ]);
+        // 🔹 sempre vincula ao usuário logado
+        $validated['user_id'] = auth()->id();
+
+        Disciplina::create($validated);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina criada com sucesso!');
     }
+
 
     public function update(Request $request, Disciplina $disciplina)
     {
@@ -70,10 +71,14 @@ class DisciplinaController extends Controller
             'ativa' => 'required|boolean',
         ]);
 
+        // 🔹 mantém sempre o user_id correto
+        $validated['user_id'] = auth()->id();
+
         $disciplina->update($validated);
 
         return redirect()->route('disciplinas.index')->with('success', 'Disciplina atualizada com sucesso!');
     }
+
 
     public function destroy(Disciplina $disciplina)
     {

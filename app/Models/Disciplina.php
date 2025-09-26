@@ -9,17 +9,17 @@ class Disciplina extends Model
 {
     use HasFactory;
 
-    protected $table = 'disciplinas';
-
     protected $fillable = [
         'nome',
         'codigo',
         'carga_horaria',
         'ativa',
+        'user_id', // 🔹 agora pode ser preenchido
     ];
 
-    protected $casts = [
-        'ativa' => 'boolean',
-        'carga_horaria' => 'integer',
-    ];
+    // 🔹 Relação com usuário (cada disciplina pertence a um usuário)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
